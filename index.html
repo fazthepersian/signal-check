@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Check — Find Your Next Move · North by Normal</title>
+  <meta name="description" content="Surface the single assumption most likely to kill your product — and get a testable hypothesis you can act on this week.">
+  <meta property="og:title" content="Signal Check — Product Strategy Diagnostic">
+  <meta property="og:description" content="Find your next move. Tune in to market and momentum. A product strategy tool from North by Normal.">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600&family=Zilla+Slab:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="landing">
+
+  <header class="site-header">
+    <a href="https://northxnormal.com" target="_blank" rel="noopener">
+      <img src="assets/NxN_logo.png" alt="North by Normal" class="logo">
+    </a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Signal Check</h1>
+      <p class="tagline">Find your next move. Tune in to market and momentum.</p>
+      <p class="subhead">
+        Most products don't fail from bad execution.<br>
+        They fail from an untested assumption nobody named out loud.<br>
+        Let's find yours.
+      </p>
+    </section>
+
+    <section class="scenario-section">
+      <div class="scenario-grid" id="scenario-grid">
+
+        <button class="scenario-card"
+          data-key="new-idea"
+          data-label="New Idea"
+          data-description="You have a concept and want to know if it holds">
+          <img src="assets/SignalCard_NewIdea.png" alt="" class="card-icon-img">
+          <div class="card-body">
+            <div class="card-label">New Idea</div>
+            <div class="card-subtext">You have a concept and want to know if it holds</div>
+          </div>
+        </button>
+
+        <button class="scenario-card"
+          data-key="existing-product"
+          data-label="Existing Product"
+          data-description="You're already building but something feels off">
+          <img src="assets/SignalCard_ExistingProduct.png" alt="" class="card-icon-img">
+          <div class="card-body">
+            <div class="card-label">Existing Product</div>
+            <div class="card-subtext">You're already building but something feels off</div>
+          </div>
+        </button>
+
+        <button class="scenario-card"
+          data-key="pivot"
+          data-label="Pivot"
+          data-description="You're reconsidering direction and need a pressure test">
+          <img src="assets/SignalCard_Pivot.png" alt="" class="card-icon-img">
+          <div class="card-body">
+            <div class="card-label">Pivot</div>
+            <div class="card-subtext">You're reconsidering direction and need a pressure test</div>
+          </div>
+        </button>
+
+        <button class="scenario-card"
+          data-key="pre-launch"
+          data-label="Pre-Launch"
+          data-description="You're close to shipping and want to stress-test the bet">
+          <img src="assets/SignalCard_Pre-Launch.png" alt="" class="card-icon-img">
+          <div class="card-body">
+            <div class="card-label">Pre-Launch</div>
+            <div class="card-subtext">You're close to shipping and want to stress-test the bet</div>
+          </div>
+        </button>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    A tool from <a href="https://northxnormal.com" target="_blank" rel="noopener">North by Normal</a>
+  </footer>
+
+  <!-- Vercel Analytics -->
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <script>
+    document.querySelectorAll('.scenario-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        document.querySelectorAll('.scenario-card').forEach(function(c) {
+          c.classList.remove('selected');
+        });
+        card.classList.add('selected');
+
+        var key   = card.dataset.key;
+        var label = encodeURIComponent(card.dataset.label);
+        var desc  = encodeURIComponent(card.dataset.description);
+
+        setTimeout(function() {
+          window.location.href = 'app.html?scenario=' + key +
+            '&label=' + label + '&desc=' + desc;
+        }, 180);
+      });
+
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

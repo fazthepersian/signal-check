@@ -1,0 +1,13 @@
+# Vercel
+.vercel
+
+# Environment variables — never commit these
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# macOS
+.DS_Store
