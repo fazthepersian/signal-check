@@ -245,12 +245,19 @@ async function handleSend() {
     .filter(function(s) { return state.briefData[s.key] === null; })
     .map(function(s) { return s.key; });
 
+  // Anthropic API requires messages to start with role 'user' — strip any
+  // leading assistant messages (the hardcoded opening message lives here)
+  var apiMessages = state.messages.slice();
+  while (apiMessages.length && apiMessages[0].role === 'assistant') {
+    apiMessages.shift();
+  }
+
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages:           state.messages,
+        messages:           apiMessages,
         scenario:           state.scenario,
         turnCount:          state.turnCount,
         emptyBriefSections: emptyBriefSections,
