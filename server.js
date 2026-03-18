@@ -10,8 +10,9 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3003;
 
-// Import the API handler (same file used by Vercel in production)
-const chatHandler = require('./api/chat');
+// Import the API handlers (same files used by Vercel in production)
+const chatHandler  = require('./api/chat');
+const emailHandler = require('./api/email');
 
 // File extension → MIME type
 const MIME = {
@@ -46,7 +47,42 @@ const server = http.createServer((req, res) => {
 
   const urlPath = req.url.split('?')[0]; // strip query string
 
-  // ── API route ──────────────────────────────────────────────
+  // ── API routes ─────────────────────────────────────────────
+  if (urlPath === '/api/email') {
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.statusCode = 200;
+      res.end();
+      return;
+    }
+
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          req.body = JSON.parse(body);
+        } catch {
+          req.body = {};
+        }
+        try {
+          await emailHandler(req, res);
+        } catch (err) {
+          console.error('Email handler error:', err);
+          res.statusCode = 500;
+          res.json({ error: 'Server error', message: 'Something went wrong. Please try again.' });
+        }
+      });
+      return;
+    }
+
+    res.statusCode = 405;
+    res.end('Method not allowed');
+    return;
+  }
+
   if (urlPath === '/api/chat') {
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*');

@@ -103,11 +103,20 @@ function init() {
   dom.scenarioHeaderImg = document.getElementById('scenario-header-img');
   dom.briefContent      = document.getElementById('brief-content');
   dom.briefDocMeta     = document.getElementById('brief-doc-meta');
-  dom.completionFooter = document.getElementById('completion-footer');
-  dom.downloadBtn      = document.getElementById('download-btn');
-  dom.shareBtn         = document.getElementById('share-btn');
-  dom.newBriefBtn      = document.getElementById('new-brief-btn');
-  dom.sharedViewBanner = document.getElementById('shared-view-banner');
+  dom.completionFooter  = document.getElementById('completion-footer');
+  dom.emailBriefBtn     = document.getElementById('email-brief-btn');
+  dom.downloadBtn       = document.getElementById('download-btn');
+  dom.shareBtn          = document.getElementById('share-btn');
+  dom.newBriefBtn       = document.getElementById('new-brief-btn');
+  dom.sharedViewBanner  = document.getElementById('shared-view-banner');
+  dom.emailModal        = document.getElementById('email-modal');
+  dom.emailModalClose   = document.getElementById('email-modal-close');
+  dom.emailInput        = document.getElementById('email-input');
+  dom.emailSubmitBtn    = document.getElementById('email-submit-btn');
+  dom.emailOptin        = document.getElementById('email-optin');
+  dom.emailError        = document.getElementById('email-error');
+  dom.emailFormState    = document.getElementById('email-form-state');
+  dom.emailConfirmState = document.getElementById('email-confirm-state');
 
   const params = new URLSearchParams(window.location.search);
 
@@ -195,9 +204,25 @@ function bindEvents() {
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
   }
-  if (dom.downloadBtn) dom.downloadBtn.addEventListener('click', downloadPDF);
-  if (dom.shareBtn)    dom.shareBtn.addEventListener('click', copyShareableLink);
-  if (dom.newBriefBtn) dom.newBriefBtn.addEventListener('click', startNewBrief);
+  if (dom.emailBriefBtn)   dom.emailBriefBtn.addEventListener('click', openEmailModal);
+  if (dom.downloadBtn)     dom.downloadBtn.addEventListener('click', downloadPDF);
+  if (dom.shareBtn)        dom.shareBtn.addEventListener('click', copyShareableLink);
+  if (dom.newBriefBtn)     dom.newBriefBtn.addEventListener('click', startNewBrief);
+  if (dom.emailModalClose) dom.emailModalClose.addEventListener('click', closeEmailModal);
+  if (dom.emailSubmitBtn)  dom.emailSubmitBtn.addEventListener('click', handleEmailSubmit);
+  if (dom.emailModal) {
+    dom.emailModal.addEventListener('click', function(e) {
+      if (e.target === dom.emailModal) closeEmailModal();
+    });
+  }
+  if (dom.emailInput) {
+    dom.emailInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); handleEmailSubmit(); }
+    });
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && dom.emailModal && !dom.emailModal.hidden) closeEmailModal();
+  });
 }
 
 function updateBriefMeta() {
@@ -479,6 +504,101 @@ function disableInput(message) {
   }
   if (dom.sendBtn) dom.sendBtn.disabled = true;
   if (message) addMessage('system', message);
+}
+
+
+// ── Email modal ────────────────────────────────────────────────────
+
+function openEmailModal() {
+  if (!dom.emailModal) return;
+
+  // Reset to default state each time it opens
+  if (dom.emailFormState)    dom.emailFormState.removeAttribute('hidden');
+  if (dom.emailConfirmState) dom.emailConfirmState.setAttribute('hidden', '');
+  if (dom.emailInput)        dom.emailInput.value = '';
+  if (dom.emailInput)        dom.emailInput.classList.remove('error');
+  if (dom.emailError)        dom.emailError.setAttribute('hidden', '');
+  if (dom.emailOptin)        dom.emailOptin.checked = false;
+  if (dom.emailSubmitBtn)    dom.emailSubmitBtn.disabled = false;
+  if (dom.emailSubmitBtn)    dom.emailSubmitBtn.textContent = 'Send to my inbox';
+
+  dom.emailModal.removeAttribute('hidden');
+  document.body.classList.add('modal-open');
+  if (dom.emailInput) dom.emailInput.focus();
+}
+
+function closeEmailModal() {
+  if (!dom.emailModal) return;
+  dom.emailModal.setAttribute('hidden', '');
+  document.body.classList.remove('modal-open');
+}
+
+async function handleEmailSubmit() {
+  if (!dom.emailInput || !dom.emailSubmitBtn) return;
+
+  var email = dom.emailInput.value.trim();
+
+  // Client-side validation
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    dom.emailInput.classList.add('error');
+    if (dom.emailError) {
+      dom.emailError.textContent = 'Please enter a valid email address.';
+      dom.emailError.removeAttribute('hidden');
+    }
+    dom.emailInput.focus();
+    return;
+  }
+
+  dom.emailInput.classList.remove('error');
+  if (dom.emailError) dom.emailError.setAttribute('hidden', '');
+  dom.emailSubmitBtn.disabled = true;
+  dom.emailSubmitBtn.textContent = 'Sending…';
+
+  var sessionDate = state.sessionStart
+    ? new Date(state.sessionStart).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      })
+    : new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+  try {
+    var resp = await fetch('/api/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:       email,
+        briefData:   state.briefData,
+        scenario:    state.scenario,
+        sessionDate: sessionDate,
+        optIn:       dom.emailOptin ? dom.emailOptin.checked : false,
+      }),
+    });
+
+    var data = await resp.json();
+
+    if (!resp.ok || data.error) {
+      dom.emailSubmitBtn.disabled = false;
+      dom.emailSubmitBtn.textContent = 'Send to my inbox';
+      if (dom.emailError) {
+        dom.emailError.textContent = data.error || 'Something went wrong. Please try again.';
+        dom.emailError.removeAttribute('hidden');
+      }
+      return;
+    }
+
+    // Success — show confirmation
+    if (dom.emailFormState)    dom.emailFormState.setAttribute('hidden', '');
+    if (dom.emailConfirmState) dom.emailConfirmState.removeAttribute('hidden');
+
+  } catch (err) {
+    dom.emailSubmitBtn.disabled = false;
+    dom.emailSubmitBtn.textContent = 'Send to my inbox';
+    if (dom.emailError) {
+      dom.emailError.textContent = 'Something went wrong. Please try again.';
+      dom.emailError.removeAttribute('hidden');
+    }
+  }
 }
 
 

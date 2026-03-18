@@ -139,11 +139,12 @@
 
         <!-- CTAs — first -->
         <div class="completion-ctas">
+          <button class="btn-primary btn-orange" id="email-brief-btn">Email me this brief</button>
           <a href="https://cal.com/faz-besharatian/nxn"
              target="_blank"
              rel="noopener"
-             class="btn-primary btn-orange">Book a free consult</a>
-          <button class="btn-primary" id="download-btn">Download PDF</button>
+             class="btn-primary">Book a free consult</a>
+          <button class="btn-secondary" id="download-btn">Download PDF</button>
           <button class="btn-secondary" id="share-btn">Copy shareable link</button>
           <button class="btn-text" id="new-brief-btn">Start a new Signal Check</button>
         </div>
@@ -201,6 +202,47 @@
     </div><!-- /brief-panel -->
 
   </div><!-- /app-layout -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       EMAIL MODAL
+       ══════════════════════════════════════════════════════════ -->
+  <div class="email-modal-overlay" id="email-modal" hidden aria-modal="true" role="dialog" aria-labelledby="email-modal-title">
+    <div class="email-modal-card">
+
+      <button class="email-modal-close" id="email-modal-close" aria-label="Close">✕</button>
+
+      <!-- Default state: form -->
+      <div id="email-form-state">
+        <h3 class="email-modal-title" id="email-modal-title">Send this brief to your inbox</h3>
+        <p class="email-modal-desc">Get a clean copy of your Signal Brief — ready to share or refer back to.</p>
+
+        <div class="email-field-row">
+          <input
+            type="email"
+            id="email-input"
+            class="email-input"
+            placeholder="your@email.com"
+            autocomplete="email"
+            aria-label="Your email address"
+          >
+          <button class="btn-primary btn-orange" id="email-submit-btn">Send to my inbox</button>
+        </div>
+
+        <p class="email-error" id="email-error" hidden></p>
+
+        <label class="email-optin-label">
+          <input type="checkbox" id="email-optin" class="email-optin-checkbox">
+          <span class="email-optin-text">Send me occasional thinking on product strategy and org design from North by Normal</span>
+        </label>
+      </div>
+
+      <!-- Confirmation state -->
+      <div id="email-confirm-state" hidden>
+        <p class="email-confirm-msg">😀 On its way!<br><span class="email-confirm-sub">— check your inbox.</span></p>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Vercel Analytics -->
   <script defer src="/_vercel/insights/script.js"></script>
